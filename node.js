@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณราคาเช่าจอ LED</title>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .form-row label {
+            margin-bottom: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        .radio-label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .radio-label input {
+            width: auto;
+            margin-right: 5px;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 5px solid #4CAF50;
+        }
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .price-breakdown {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        .total-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-top: 15px;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .form-section {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-section-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .dimension-unit {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        .checkbox-group {
+            margin-top: 15px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .checkbox-label input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .service-price {
+            color: #666;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>เครื่องคำนวณราคาเช่าจอ LED</h1>
+        
+        <div class="form-section">
+            <div class="form-section-title">วิธีกำหนดขนาดพื้นที่</div>
+            
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="areaType" value="direct" checked> ระบุพื้นที่โดยตรง (ตร.ม.)
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="areaType" value="dimensions"> ระบุความกว้าง x ความสูง
+                </label>
+            </div>
+            
+            <div id="directAreaInput" class="form-group">
+                <label for="area">พื้นที่จอ LED (ตารางเมตร)</label>
+                <input type="number" id="area" min="0.25" step="0.25" placeholder="ระบุขนาดพื้นที่จอ LED" value="11.25">
+                <div id="areaError" class="error"></div>
+            </div>
+            
+            <div id="dimensionsInput" class="form-group" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="width">ความกว้าง (เมตร)</label>
+                        <input type="number" id="width" min="0.25" step="0.25" placeholder="ความกว้าง" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="height">ความสูง (เมตร)</label>
+                        <input type="number" id="height" min="0.25" step="0.25" placeholder="ความสูง" value="1">
+                    </div>
+                </div>
+                <div class="dimension-unit">พื้นที่: <span id="calculatedArea">1.00</span> ตารางเมตร</div>
+                <div id="dimensionsError" class="error"></div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-section-title">รายละเอียดการเช่า</div>
+            
+            <div class="form-group">
+                <label>ประเภทผู้เช่า</label>
+                <div class="radio-group" style="margin-bottom: 15px;">
+                    <label class="radio-label" style="display: block; margin-bottom: 10px;">
+                        <input type="radio" name="customerType" value="government" data-price="3300"> ราชการ (ทำสัญญา) - 3,300 บาท / ตารางเมตร / วัน
+                    </label>
+                    <label class="radio-label" style="display: block; margin-bottom: 10px;">
+                        <input type="radio" name="customerType" value="private" data-price="1800" checked> เอกชน (จ่ายเต็ม) - 1,800 บาท / ตารางเมตร / วัน
+                    </label>
+                    <label class="radio-label" style="display: block;">
+                        <input type="radio" name="customerType" value="religious" data-price="1000"> ตาดีกา, องค์กรศาสนา (จ่ายสด) - 1,000 บาท / ตารางเมตร / วัน
+                    </label>
+                </div>
+                
+                <div style="margin-top: 15px;">
+                    <label for="pricePerSqm">ราคาเช่าต่อตารางเมตรต่อวัน (บาท)</label>
+                    <input type="number" id="pricePerSqm" min="1" step="1" placeholder="ราคาเช่าต่อตารางเมตรต่อวัน" value="1800">
+                    <div class="dimension-unit">สามารถปรับราคาเองได้ตามต้องการ</div>
+                    <div id="priceError" class="error"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="days">จำนวนวันที่ต้องการเช่า</label>
+                <input type="number" id="days" min="1" step="1" placeholder="ระบุจำนวนวันที่ต้องการเช่า" value="1">
+                <div id="daysError" class="error"></div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-section-title">บริการเสริมเพิ่มเติม</div>
+            
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="fireMachine" value="8000"> เครื่องปั้นไฟ 
+                    <span class="service-price">(คิดราคาวันละ 8,000 บาท)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="liveOB" value="15000"> OB ไลฟ์สด 
+                    <span class="service-price">(คิดราคาวันละ 15,000 บาท)</span>
+                </label>
+            </div>
+        </div>
+        
+        <div id="result" class="result">
+            <div class="result-title">รายละเอียดค่าใช้จ่าย</div>
+            <div id="priceBreakdown" class="price-breakdown"></div>
+            <div id="additionalServices" class="price-breakdown" style="margin-top: 10px;"></div>
+            <div id="totalPrice" class="total-price"></div>
+        </div>
+    </div>
+
+    <script>
+        // รับ elements ที่จำเป็น
+        const directAreaInput = document.getElementById('directAreaInput');
+        const dimensionsInput = document.getElementById('dimensionsInput');
+        const areaTypeRadios = document.getElementsByName('areaType');
+        const customerTypeRadios = document.getElementsByName('customerType');
+        const areaInput = document.getElementById('area');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const calculatedAreaSpan = document.getElementById('calculatedArea');
+        const daysInput = document.getElementById('days');
+        const pricePerSqmInput = document.getElementById('pricePerSqm');
+        const resultDiv = document.getElementById('result');
+        const fireMachineCheckbox = document.getElementById('fireMachine');
+        const liveOBCheckbox = document.getElementById('liveOB');
+        
+        // เพิ่ม event listeners
+        areaTypeRadios.forEach(radio => {
+            radio.addEventListener('change', toggleAreaInputType);
+        });
+        
+        // เพิ่ม event listeners สำหรับประเภทลูกค้าเพื่อเปลี่ยนราคา
+        customerTypeRadios.forEach(radio => {
+            radio.addEventListener('change', updatePriceByCustomerType);
+        });
+        
+        // ฟังก์ชันอัพเดทราคาตามประเภทลูกค้า
+        function updatePriceByCustomerType() {
+            const selectedPrice = this.dataset.price;
+            pricePerSqmInput.value = selectedPrice;
+            calculatePrice();
+        }
+        
+        // เพิ่ม event listeners สำหรับการคำนวณอัตโนมัติ
+        const allInputs = [areaInput, widthInput, heightInput, daysInput, pricePerSqmInput, fireMachineCheckbox, liveOBCheckbox];
+        allInputs.forEach(input => {
+            input.addEventListener('input', calculatePrice);
+            if (input.type === 'checkbox') {
+                input.addEventListener('change', calculatePrice);
+            }
+        });
+        
+        // แสดงหรือซ่อนช่องกรอกตามการเลือก
+        function toggleAreaInputType() {
+            if (this.value === 'direct') {
+                directAreaInput.style.display = 'block';
+                dimensionsInput.style.display = 'none';
+            } else {
+                directAreaInput.style.display = 'none';
+                dimensionsInput.style.display = 'block';
+                
+                // คำนวณพื้นที่ทันทีเมื่อเปลี่ยนโหมด
+                updateCalculatedArea();
+            }
+            
+            // คำนวณราคาใหม่ทันที
+            calculatePrice();
+        }
+        
+        // คำนวณพื้นที่จากความกว้างและความสูง
+        function updateCalculatedArea() {
+            const width = parseFloat(widthInput.value) || 0;
+            const height = parseFloat(heightInput.value) || 0;
+            const area = width * height;
+            calculatedAreaSpan.textContent = area.toFixed(2);
+        }
+        
+        // อัพเดทพื้นที่เมื่อมีการเปลี่ยนขนาด
+        widthInput.addEventListener('input', updateCalculatedArea);
+        heightInput.addEventListener('input', updateCalculatedArea);
+        
+        // ฟังก์ชันคำนวณราคา
+        function calculatePrice() {
+            // อัพเดทพื้นที่คำนวณถ้าอยู่ในโหมดกำหนดขนาด
+            if (document.querySelector('input[name="areaType"]:checked').value === 'dimensions') {
+                updateCalculatedArea();
+            }
+            
+            // รับค่าจาก input
+            let area;
+            if (document.querySelector('input[name="areaType"]:checked').value === 'direct') {
+                area = parseFloat(areaInput.value) || 0;
+            } else {
+                const width = parseFloat(widthInput.value) || 0;
+                const height = parseFloat(heightInput.value) || 0;
+                area = width * height;
+            }
+            
+            const days = parseInt(daysInput.value) || 0;
+            const pricePerSqm = parseFloat(pricePerSqmInput.value) || 0;
+            
+            // ตรวจสอบข้อมูลที่กรอก
+            let isValid = true;
+            
+            if (area <= 0) {
+                document.getElementById('areaError').textContent = 'กรุณาระบุพื้นที่จอ LED ให้ถูกต้อง';
+                isValid = false;
+            } else {
+                document.getElementById('areaError').textContent = '';
+            }
+            
+            if (days <= 0) {
+                document.getElementById('daysError').textContent = 'กรุณาระบุจำนวนวันที่ต้องการเช่าให้ถูกต้อง';
+                isValid = false;
+            } else {
+                document.getElementById('daysError').textContent = '';
+            }
+            
+            if (pricePerSqm <= 0) {
+                document.getElementById('priceError').textContent = 'กรุณาระบุราคาเช่าต่อตารางเมตรต่อวัน';
+                isValid = false;
+            } else {
+                document.getElementById('priceError').textContent = '';
+            }
+            
+            if (!isValid) {
+                resultDiv.style.display = 'none';
+                return;
+            }
+            
+            // คำนวณราคา
+            const installationFee = 10000; // ค่าติดตั้งและรื้อถอน
+            
+            // คำนวณค่าเช่าวันแรก
+            const firstDayRental = pricePerSqm * area;
+            
+            // คำนวณค่าเช่าตั้งแต่วันที่ 2 เป็นต้นไป (ถ้ามี)
+            const additionalDaysRental = days > 1 ? pricePerSqm * area * 0.5 * (days - 1) : 0;
+            
+            // คำนวณราคารวม
+            const totalRentalFee = firstDayRental + additionalDaysRental;
+            
+            // คำนวณบริการเสริม
+            let additionalServicesHTML = '';
+            let additionalServicesTotal = 0;
+            
+            if (fireMachineCheckbox.checked) {
+                const fireMachineCost = 8000 * days;
+                additionalServicesTotal += fireMachineCost;
+                additionalServicesHTML += `<p>เครื่องปั้นไฟ: 8,000 บาท x ${days} วัน = ${fireMachineCost.toFixed(2)} บาท</p>`;
+            }
+            
+            if (liveOBCheckbox.checked) {
+                const liveOBCost = 15000 * days;
+                additionalServicesTotal += liveOBCost;
+                additionalServicesHTML += `<p>OB ไลฟ์สด: 15,000 บาท x ${days} วัน = ${liveOBCost.toFixed(2)} บาท</p>`;
+            }
+            
+            if (additionalServicesHTML) {
+                document.getElementById('additionalServices').innerHTML = '<strong>บริการเสริม:</strong>' + additionalServicesHTML;
+            } else {
+                document.getElementById('additionalServices').innerHTML = '';
+            }
+            
+            const totalPrice = totalRentalFee + installationFee + additionalServicesTotal;
+            
+            // แสดงผลลัพธ์
+            let breakdownHTML = `
+                <p>ค่าเช่าวันแรก: ${pricePerSqm.toFixed(2)} บาท x ${area.toFixed(2)} ตร.ม. = ${firstDayRental.toFixed(2)} บาท</p>
+            `;
+            
+            if (days > 1) {
+                breakdownHTML += `
+                    <p>ค่าเช่าวันถัดไป: ${pricePerSqm.toFixed(2)} บาท x ${area.toFixed(2)} ตร.ม. x 0.5 x ${days - 1} วัน = ${additionalDaysRental.toFixed(2)} บาท</p>
+                `;
+            }
+            
+            breakdownHTML += `
+                <p>ค่าติดตั้งและรื้อถอน: ${installationFee.toFixed(2)} บาท</p>
+                <p>รวมค่าเช่าทั้งหมด: ${totalRentalFee.toFixed(2)} บาท</p>
+            `;
+            
+            if (additionalServicesTotal > 0) {
+                breakdownHTML += `
+                    <p>รวมค่าบริการเสริม: ${additionalServicesTotal.toFixed(2)} บาท</p>
+                `;
+            }
+            
+            document.getElementById('priceBreakdown').innerHTML = breakdownHTML;
+            document.getElementById('totalPrice').textContent = `ราคารวมทั้งสิ้น: ${totalPrice.toFixed(2)} บาท`;
+            resultDiv.style.display = 'block';
+        }
+        
+        // คำนวณราคาเริ่มต้นเมื่อโหลดหน้า
+        calculatePrice();
+    </script>
+</body>
+</html>
