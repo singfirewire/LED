@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คำนวณราคาเช่าจอ LED โดย 1O1</title>
+    <title>คำนวณราคาเช่าจอ LED</title>
     <style>
         body {
             font-family: 'Prompt', sans-serif;
@@ -151,14 +151,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>คำนวณราคาเช่าจอ LED</h1>
+        <h1>เครื่องคำนวณราคาเช่าจอ LED</h1>
         
         <div class="form-section">
             <div class="form-section-title">วิธีกำหนดขนาดพื้นที่</div>
             
             <div class="radio-group">
                 <label class="radio-label">
-                    <input type="radio" name="areaType" value="direct" checked> ระบุจำนวนพื้นที่ (ตร.ม.)
+                    <input type="radio" name="areaType" value="direct" checked> ระบุพื้นที่โดยตรง (ตร.ม.)
                 </label>
                 <label class="radio-label">
                     <input type="radio" name="areaType" value="dimensions"> ระบุความกว้าง x ความสูง
@@ -175,11 +175,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="width">ความกว้าง (เมตร)</label>
-                        <input type="number" id="width" min="0.25" step="0.25" placeholder="ความกว้าง" value="5">
+                        <input type="number" id="width" min="0.25" step="0.25" placeholder="ความกว้าง" value="1">
                     </div>
                     <div class="form-group">
                         <label for="height">ความสูง (เมตร)</label>
-                        <input type="number" id="height" min="0.25" step="0.25" placeholder="ความสูง" value="2.5">
+                        <input type="number" id="height" min="0.25" step="0.25" placeholder="ความสูง" value="1">
                     </div>
                 </div>
                 <div class="dimension-unit">พื้นที่: <span id="calculatedArea">1.00</span> ตารางเมตร</div>
@@ -188,19 +188,19 @@
         </div>
         
         <div class="form-section">
-            <div class="form-section-title">รายละเอียดกลุ่มองค์กร</div>
+            <div class="form-section-title">รายละเอียดการเช่า</div>
             
             <div class="form-group">
-                <label>ประเภทลูกค้า รูปแบบการชำระเงิน</label>
+                <label>ประเภทผู้เช่า</label>
                 <div class="radio-group" style="margin-bottom: 15px;">
                     <label class="radio-label" style="display: block; margin-bottom: 10px;">
-                        <input type="radio" name="customerType" value="government" data-price="3300"> หน่วยงานราชการ - 3,300 บาท/Sq.m./Day (ทำสัญญา)
+                        <input type="radio" name="customerType" value="government" data-price="3300"> หน่วยงานราชการ - 3,300 บาท / ตารางเมตร / วัน (ทำสัญญา)
                     </label>
                     <label class="radio-label" style="display: block; margin-bottom: 10px;">
-                        <input type="radio" name="customerType" value="private" data-price="1800" checked> เอกชน  - 1,800 บาท/Sq.m./Day (มัดจำ 10,000 , ส่วนที่เหลือจ่ายวันติดตั้ง)
+                        <input type="radio" name="customerType" value="private" data-price="1800" checked> เอกชน  - 1,800 บาท / ตารางเมตร / วัน (มัดจำ 10,000 , ส่วนที่เหลือจ่ายวันติดตั้ง)
                     </label>
                     <label class="radio-label" style="display: block;">
-                        <input type="radio" name="customerType" value="religious" data-price="1000"> ตาดีกา, องค์กรศาสนา, ออแกไนซ์  - 1,000 บาท/Sq.m./Day (มัดจำ 50%, จ่ายสดวันติดตั้ง)
+                        <input type="radio" name="customerType" value="religious" data-price="1000"> ตาดีกา, องค์กรศาสนา  - 1,000 บาท / ตารางเมตร / วัน (มัดจำ 50%, จ่ายสดวันติดตั้ง)
                     </label>
                 </div>
                 
@@ -213,7 +213,7 @@
             </div>
             
             <div class="form-group">
-                <label for="days">จำนวนวันงาน (ติดตั้งล่วงหน้า 1 วัน) </label>
+                <label for="days">จำนวนวันงาน (ติดตั้งล่วงหน้า 1 วัน) *ถ้าต้องซ้อมคิวเหมือนงานจริง มีค่าใช้จ่ายเพิ่ม</label>
                 <input type="number" id="days" min="1" step="1" placeholder="ระบุจำนวนวันที่ต้องการเช่า" value="1">
                 <div id="daysError" class="error"></div>
             </div>
@@ -229,7 +229,7 @@
                 </label>
                 <label class="checkbox-label">
                     <input type="checkbox" id="liveOB" value="15000"> ทีม OB ภาพขึ้นจอ ,ไลฟ์สด Facebook 
-                    <span class="service-price">(15,000 บาท/ ต่อวัน *ไม่เกิน 8ชม.)</span>
+                    <span class="service-price">(15,000 บาท/วัน)</span>
                 </label>
             </div>
         </div>
@@ -248,6 +248,11 @@
     </div>
 
     <script>
+        // ฟังก์ชันจัดรูปแบบตัวเลขให้มีเครื่องหมายคอมม่า
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         // รับ elements ที่จำเป็น
         const directAreaInput = document.getElementById('directAreaInput');
         const dimensionsInput = document.getElementById('dimensionsInput');
@@ -386,13 +391,13 @@
             if (fireMachineCheckbox.checked) {
                 const fireMachineCost = 8000 * days;
                 additionalServicesTotal += fireMachineCost;
-                additionalServicesHTML += `<p>เครื่องปั้นไฟ: 8,000 บาท x ${days} วัน = ${fireMachineCost.toFixed(2)} บาท</p>`;
+                additionalServicesHTML += `<p>เครื่องปั้นไฟ: 8,000 บาท x ${days} วัน = ${formatNumber(fireMachineCost.toFixed(2))} บาท</p>`;
             }
             
             if (liveOBCheckbox.checked) {
                 const liveOBCost = 15000 * days;
                 additionalServicesTotal += liveOBCost;
-                additionalServicesHTML += `<p>OB ไลฟ์สด: 15,000 บาท x ${days} วัน = ${liveOBCost.toFixed(2)} บาท</p>`;
+                additionalServicesHTML += `<p>OB ไลฟ์สด: 15,000 บาท x ${days} วัน = ${formatNumber(liveOBCost.toFixed(2))} บาท</p>`;
             }
             
             if (additionalServicesHTML) {
@@ -405,28 +410,28 @@
             
             // แสดงผลลัพธ์
             let breakdownHTML = `
-                <p>ค่าเช่าวันแรก: ${pricePerSqm.toFixed(2)} บาท x ${area.toFixed(2)} ตร.ม. = ${firstDayRental.toFixed(2)} บาท</p>
+                <p>ค่าเช่าวันแรก: ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${area.toFixed(2)} ตร.ม. = ${formatNumber(firstDayRental.toFixed(2))} บาท</p>
             `;
             
             if (days > 1) {
                 breakdownHTML += `
-                    <p>ค่าเช่าวันถัดไป (วันที่ 2 เป็นต้นไปลด 50%): ${pricePerSqm.toFixed(2)} บาท x ${area.toFixed(2)} ตร.ม. x 0.5 x ${days - 1} วัน = ${additionalDaysRental.toFixed(2)} บาท</p>
+                    <p>ค่าเช่าวันถัดไป: ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${area.toFixed(2)} ตร.ม. x 0.5 x ${days - 1} วัน = ${formatNumber(additionalDaysRental.toFixed(2))} บาท</p>
                 `;
             }
             
             breakdownHTML += `
-                <p>ค่าติดตั้งและรื้อถอน: ${installationFee.toFixed(2)} บาท</p>
-                <p>รวมค่าเช่าทั้งหมด: ${totalRentalFee.toFixed(2)} บาท</p>
+                <p>ค่าติดตั้งและรื้อถอน: ${formatNumber(installationFee.toFixed(2))} บาท</p>
+                <p>รวมค่าเช่าทั้งหมด: ${formatNumber(totalRentalFee.toFixed(2))} บาท</p>
             `;
             
             if (additionalServicesTotal > 0) {
                 breakdownHTML += `
-                    <p>รวมค่าบริการเสริม: ${additionalServicesTotal.toFixed(2)} บาท</p>
+                    <p>รวมค่าบริการเสริม: ${formatNumber(additionalServicesTotal.toFixed(2))} บาท</p>
                 `;
             }
             
             document.getElementById('priceBreakdown').innerHTML = breakdownHTML;
-            document.getElementById('totalPrice').textContent = `ราคารวมทั้งสิ้น: ${totalPrice.toFixed(2)} บาท`;
+            document.getElementById('totalPrice').textContent = `ราคารวมทั้งสิ้น: ${formatNumber(totalPrice.toFixed(2))} บาท`;
             resultDiv.style.display = 'block';
         }
         
