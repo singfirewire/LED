@@ -53,7 +53,7 @@
             font-weight: bold;
             color: #555;
         }
-        input {
+        input, select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -147,6 +147,16 @@
             font-size: 14px;
             padding: 10px 0;
         }
+        .screen-container {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .screen-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -156,35 +166,35 @@
         <div class="form-section">
             <div class="form-section-title">วิธีกำหนดขนาดพื้นที่</div>
             
-            <div class="radio-group">
-                <label class="radio-label">
-                    <input type="radio" name="areaType" value="direct" checked> ระบุพื้นที่โดยตรง (ตร.ม.)
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="areaType" value="dimensions"> ระบุความกว้าง x ความสูง
-                </label>
+            <div class="form-group">
+                <label for="screenCount">จำนวนจอ LED ที่ต้องการเช่า</label>
+                <select id="screenCount" onchange="updateScreenInputs()">
+                    <option value="1">1 จอ</option>
+                    <option value="2">2 จอ</option>
+                    <option value="3">3 จอ</option>
+                </select>
             </div>
             
-            <div id="directAreaInput" class="form-group">
-                <label for="area">พื้นที่จอ LED (ตารางเมตร)</label>
-                <input type="number" id="area" min="0.25" step="0.25" placeholder="ระบุขนาดพื้นที่จอ LED" value="11.25">
-                <div id="areaError" class="error"></div>
-            </div>
-            
-            <div id="dimensionsInput" class="form-group" style="display: none;">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="width">ความกว้าง (เมตร)</label>
-                        <input type="number" id="width" min="0.25" step="0.25" placeholder="ความกว้าง" value="5">
+            <div id="screensContainer">
+                <!-- Screen inputs will be dynamically added here -->
+                <div class="screen-container" id="screen1">
+                    <div class="screen-title">จอที่ 1</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="width1">ความกว้าง (เมตร)</label>
+                            <input type="number" id="width1" min="0.25" step="0.25" placeholder="ความกว้าง" value="5" oninput="calculateTotalArea()">
+                        </div>
+                        <div class="form-group">
+                            <label for="height1">ความสูง (เมตร)</label>
+                            <input type="number" id="height1" min="0.25" step="0.25" placeholder="ความสูง" value="2.5" oninput="calculateTotalArea()">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="height">ความสูง (เมตร)</label>
-                        <input type="number" id="height" min="0.25" step="0.25" placeholder="ความสูง" value="2.5">
-                    </div>
+                    <div class="dimension-unit">พื้นที่: <span id="calculatedArea1">12.50</span> ตารางเมตร</div>
                 </div>
-                <div class="dimension-unit">พื้นที่: <span id="calculatedArea">1.00</span> ตารางเมตร</div>
-                <div id="dimensionsError" class="error"></div>
             </div>
+            
+            <div class="dimension-unit" style="margin-top: 15px; font-weight: bold;">พื้นที่รวมทั้งหมด: <span id="totalArea">12.50</span> ตารางเมตร</div>
+            <div id="dimensionsError" class="error"></div>
         </div>
         
         <div class="form-section">
@@ -214,7 +224,18 @@
             
             <div class="form-group">
                 <label for="days">จำนวนวันจัดงาน วันถัดไปคิดค่าเช่าครึ่งราคา</label>
-                <input type="number" id="days" min="1" step="1" placeholder="ระบุจำนวนวันที่ต้องการเช่า" value="1">
+                <select id="days">
+                    <option value="1">1 วัน</option>
+                    <option value="2">2 วัน</option>
+                    <option value="3">3 วัน</option>
+                    <option value="4">4 วัน</option>
+                    <option value="5">5 วัน</option>
+                    <option value="6">6 วัน</option>
+                    <option value="7">7 วัน</option>
+                    <option value="8">8 วัน</option>
+                    <option value="9">9 วัน</option>
+                    <option value="10">10 วัน</option>
+                </select>
                 <div id="daysError" class="error"></div>
             </div>
         </div>
@@ -254,24 +275,15 @@
         }
 
         // รับ elements ที่จำเป็น
-        const directAreaInput = document.getElementById('directAreaInput');
-        const dimensionsInput = document.getElementById('dimensionsInput');
-        const areaTypeRadios = document.getElementsByName('areaType');
         const customerTypeRadios = document.getElementsByName('customerType');
-        const areaInput = document.getElementById('area');
-        const widthInput = document.getElementById('width');
-        const heightInput = document.getElementById('height');
-        const calculatedAreaSpan = document.getElementById('calculatedArea');
         const daysInput = document.getElementById('days');
         const pricePerSqmInput = document.getElementById('pricePerSqm');
         const resultDiv = document.getElementById('result');
         const fireMachineCheckbox = document.getElementById('fireMachine');
         const liveOBCheckbox = document.getElementById('liveOB');
-        
-        // เพิ่ม event listeners
-        areaTypeRadios.forEach(radio => {
-            radio.addEventListener('change', toggleAreaInputType);
-        });
+        const screenCountSelect = document.getElementById('screenCount');
+        const screensContainer = document.getElementById('screensContainer');
+        const totalAreaSpan = document.getElementById('totalArea');
         
         // เพิ่ม event listeners สำหรับประเภทลูกค้าเพื่อเปลี่ยนราคา
         customerTypeRadios.forEach(radio => {
@@ -286,7 +298,7 @@
         }
         
         // เพิ่ม event listeners สำหรับการคำนวณอัตโนมัติ
-        const allInputs = [areaInput, widthInput, heightInput, daysInput, pricePerSqmInput, fireMachineCheckbox, liveOBCheckbox];
+        const allInputs = [pricePerSqmInput, fireMachineCheckbox, liveOBCheckbox, daysInput];
         allInputs.forEach(input => {
             input.addEventListener('input', calculatePrice);
             if (input.type === 'checkbox') {
@@ -294,50 +306,65 @@
             }
         });
         
-        // แสดงหรือซ่อนช่องกรอกตามการเลือก
-        function toggleAreaInputType() {
-            if (this.value === 'direct') {
-                directAreaInput.style.display = 'block';
-                dimensionsInput.style.display = 'none';
-            } else {
-                directAreaInput.style.display = 'none';
-                dimensionsInput.style.display = 'block';
+        // ฟังก์ชันอัพเดทช่องกรอกขนาดจอตามจำนวนจอที่เลือก
+        function updateScreenInputs() {
+            const screenCount = parseInt(screenCountSelect.value);
+            screensContainer.innerHTML = '';
+            
+            for (let i = 1; i <= screenCount; i++) {
+                const screenDiv = document.createElement('div');
+                screenDiv.className = 'screen-container';
+                screenDiv.id = `screen${i}`;
                 
-                // คำนวณพื้นที่ทันทีเมื่อเปลี่ยนโหมด
-                updateCalculatedArea();
+                screenDiv.innerHTML = `
+                    <div class="screen-title">จอที่ ${i}</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="width${i}">ความกว้าง (เมตร)</label>
+                            <input type="number" id="width${i}" min="0.25" step="0.25" placeholder="ความกว้าง" value="${i === 1 ? '5' : '1.5'}" oninput="calculateTotalArea()">
+                        </div>
+                        <div class="form-group">
+                            <label for="height${i}">ความสูง (เมตร)</label>
+                            <input type="number" id="height${i}" min="0.25" step="0.25" placeholder="ความสูง" value="${i === 1 ? '2.5' : '3'}" oninput="calculateTotalArea()">
+                        </div>
+                    </div>
+                    <div class="dimension-unit">พื้นที่: <span id="calculatedArea${i}">${i === 1 ? '12.50' : '4.50'}</span> ตารางเมตร</div>
+                `;
+                
+                screensContainer.appendChild(screenDiv);
             }
             
-            // คำนวณราคาใหม่ทันที
+            calculateTotalArea();
+        }
+        
+        // คำนวณพื้นที่รวมทั้งหมด
+        function calculateTotalArea() {
+            const screenCount = parseInt(screenCountSelect.value);
+            let totalArea = 0;
+            
+            for (let i = 1; i <= screenCount; i++) {
+                const width = parseFloat(document.getElementById(`width${i}`).value) || 0;
+                const height = parseFloat(document.getElementById(`height${i}`).value) || 0;
+                const area = width * height;
+                
+                document.getElementById(`calculatedArea${i}`).textContent = area.toFixed(2);
+                totalArea += area;
+            }
+            
+            totalAreaSpan.textContent = totalArea.toFixed(2);
             calculatePrice();
         }
         
-        // คำนวณพื้นที่จากความกว้างและความสูง
-        function updateCalculatedArea() {
-            const width = parseFloat(widthInput.value) || 0;
-            const height = parseFloat(heightInput.value) || 0;
-            const area = width * height;
-            calculatedAreaSpan.textContent = area.toFixed(2);
-        }
-        
-        // อัพเดทพื้นที่เมื่อมีการเปลี่ยนขนาด
-        widthInput.addEventListener('input', updateCalculatedArea);
-        heightInput.addEventListener('input', updateCalculatedArea);
-        
         // ฟังก์ชันคำนวณราคา
         function calculatePrice() {
-            // อัพเดทพื้นที่คำนวณถ้าอยู่ในโหมดกำหนดขนาด
-            if (document.querySelector('input[name="areaType"]:checked').value === 'dimensions') {
-                updateCalculatedArea();
-            }
-            
             // รับค่าจาก input
-            let area;
-            if (document.querySelector('input[name="areaType"]:checked').value === 'direct') {
-                area = parseFloat(areaInput.value) || 0;
-            } else {
-                const width = parseFloat(widthInput.value) || 0;
-                const height = parseFloat(heightInput.value) || 0;
-                area = width * height;
+            const screenCount = parseInt(screenCountSelect.value);
+            let totalArea = 0;
+            
+            for (let i = 1; i <= screenCount; i++) {
+                const width = parseFloat(document.getElementById(`width${i}`).value) || 0;
+                const height = parseFloat(document.getElementById(`height${i}`).value) || 0;
+                totalArea += width * height;
             }
             
             const days = parseInt(daysInput.value) || 0;
@@ -346,18 +373,11 @@
             // ตรวจสอบข้อมูลที่กรอก
             let isValid = true;
             
-            if (area <= 0) {
-                document.getElementById('areaError').textContent = 'กรุณาระบุพื้นที่จอ LED ให้ถูกต้อง';
+            if (totalArea <= 0) {
+                document.getElementById('dimensionsError').textContent = 'กรุณาระบุขนาดจอ LED ให้ถูกต้อง';
                 isValid = false;
             } else {
-                document.getElementById('areaError').textContent = '';
-            }
-            
-            if (days <= 0) {
-                document.getElementById('daysError').textContent = 'กรุณาระบุจำนวนวันที่ต้องการเช่าให้ถูกต้อง';
-                isValid = false;
-            } else {
-                document.getElementById('daysError').textContent = '';
+                document.getElementById('dimensionsError').textContent = '';
             }
             
             if (pricePerSqm <= 0) {
@@ -376,10 +396,10 @@
             const installationFee = 10000; // ค่าติดตั้งและรื้อถอน
             
             // คำนวณค่าเช่าวันแรก
-            const firstDayRental = pricePerSqm * area;
+            const firstDayRental = pricePerSqm * totalArea;
             
             // คำนวณค่าเช่าตั้งแต่วันที่ 2 เป็นต้นไป (ถ้ามี)
-            const additionalDaysRental = days > 1 ? pricePerSqm * area * 0.5 * (days - 1) : 0;
+            const additionalDaysRental = days > 1 ? pricePerSqm * totalArea * 0.5 * (days - 1) : 0;
             
             // คำนวณราคารวม
             const totalRentalFee = firstDayRental + additionalDaysRental;
@@ -410,12 +430,12 @@
             
             // แสดงผลลัพธ์
             let breakdownHTML = `
-                <p>ค่าเช่าวันแรก: ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${area.toFixed(2)} ตร.ม. = ${formatNumber(firstDayRental.toFixed(2))} บาท</p>
+                <p>ค่าเช่าวันแรก: ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${totalArea.toFixed(2)} ตร.ม. = ${formatNumber(firstDayRental.toFixed(2))} บาท</p>
             `;
             
             if (days > 1) {
                 breakdownHTML += `
-                    <p>ค่าเช่าวันถัดไป (วันที่ 2 เป็นต้นไปลด 50%): ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${area.toFixed(2)} ตร.ม. x 0.5 x ${days - 1} วัน = ${formatNumber(additionalDaysRental.toFixed(2))} บาท</p>
+                    <p>ค่าเช่าวันถัดไป (วันที่ 2 เป็นต้นไปลด 50%): ${formatNumber(pricePerSqm.toFixed(2))} บาท x ${totalArea.toFixed(2)} ตร.ม. x 0.5 x ${days - 1} วัน = ${formatNumber(additionalDaysRental.toFixed(2))} บาท</p>
                 `;
             }
             
@@ -436,7 +456,7 @@
         }
         
         // คำนวณราคาเริ่มต้นเมื่อโหลดหน้า
-        calculatePrice();
+        calculateTotalArea();
     </script>
 </body>
 </html>
